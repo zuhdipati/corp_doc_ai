@@ -1,3 +1,5 @@
+import 'package:corp_doc_ai/core/routes/app_routes.dart';
+import 'package:corp_doc_ai/core/themes/app_theme.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -9,6 +11,9 @@ class CorpDocApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return MaterialApp.router(
+      routerConfig: AppRoutes().router,
+      theme: AppTheme.appTheme,
+    );
   }
-} 
+}
