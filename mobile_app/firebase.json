@@ -1,0 +1,31 @@
+{
+    "flutter": {
+        "platforms": {
+            "android": {
+                "default": {
+                    "projectId": "corp-doc-ai",
+                    "appId": "1:61227032022:android:b34c29c2a443edb3f9d877",
+                    "fileOutput": "android/app/google-services.json"
+                }
+            },
+            "ios": {
+                "default": {
+                    "projectId": "corp-doc-ai",
+                    "appId": "1:61227032022:ios:eb934c8e0e7989c1f9d877",
+                    "uploadDebugSymbols": false,
+                    "fileOutput": "ios/Runner/GoogleService-Info.plist"
+                }
+            },
+            "dart": {
+                "lib/firebase_options.dart": {
+                    "projectId": "corp-doc-ai",
+                    "configurations": {
+                        "android": "1:61227032022:android:b34c29c2a443edb3f9d877",
+                        "ios": "1:61227032022:ios:eb934c8e0e7989c1f9d877",
+                        "web": "1:61227032022:web:b68b3372d9987575f9d877"
+                    }
+                }
+            }
+        }
+    }
+}

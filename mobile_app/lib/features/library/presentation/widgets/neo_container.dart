@@ -8,6 +8,7 @@ class NeoContainer extends StatefulWidget {
   final VoidCallback onTap;
   final Color backgroundColor;
   final Color foregroundColor;
+  final double borderRadius;
 
   const NeoContainer({
     super.key,
@@ -15,6 +16,7 @@ class NeoContainer extends StatefulWidget {
     this.width = 55,
     this.backgroundColor = AppColors.secondary,
     this.foregroundColor = AppColors.black,
+    this.borderRadius = 10,
     required this.child,
     required this.onTap,
   });
@@ -51,7 +53,7 @@ class _NeoContainerState extends State<NeoContainer> {
         decoration: BoxDecoration(
           color: _isPressed ? AppColors.black : widget.backgroundColor,
           border: Border.all(color: AppColors.black),
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(widget.borderRadius),
           boxShadow: [
             BoxShadow(
               color: AppColors.black,

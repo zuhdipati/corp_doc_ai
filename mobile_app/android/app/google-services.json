@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "61227032022",
+    "project_id": "corp-doc-ai",
+    "storage_bucket": "corp-doc-ai.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:61227032022:android:b34c29c2a443edb3f9d877",
+        "android_client_info": {
+          "package_name": "com.example.corp_doc_ai"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "61227032022-tgl9pds9v8d83la1527atf1qk31kdgll.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDDZUcd-6cEacH8mwQhvBRfANHdERENcP4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "61227032022-tgl9pds9v8d83la1527atf1qk31kdgll.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
