@@ -9,6 +9,8 @@ class Settings(BaseSettings):
     MODEL_BASE_URL: str 
     VECTOR_DB_EMBEDDING_MODEL: str = "BAAI/bge-m3"
     VECTOR_DB_PATH: str = "./vector_db"
+    UPLOAD_DIR: str = "./uploads"
+    FIREBASE_CREDENTIALS_PATH: str = "./service_account.json"
     MODEL_NAME: str = "openai/gpt-oss-20b"
     CHUNK_SIZE: int = 3000
     CHUNK_OVERLAP: int = 200
