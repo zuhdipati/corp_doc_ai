@@ -13,6 +13,7 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
+      bloc: context.read<AuthBloc>()..add(AuthCheckRequested()),
       listener: (context, state) {
         if (state is AuthAuthenticated) {
           context.pushNamed('home');

@@ -1,5 +1,5 @@
 import 'package:corp_doc_ai/core/themes/app_colors.dart';
-import 'package:corp_doc_ai/features/library/presentation/widgets/neo_container.dart';
+import 'package:corp_doc_ai/features/document/presentation/widgets/neo_container.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 

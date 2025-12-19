@@ -2,7 +2,7 @@ import 'package:corp_doc_ai/core/themes/app_colors.dart';
 import 'package:corp_doc_ai/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:corp_doc_ai/features/auth/presentation/bloc/auth_event.dart';
 import 'package:corp_doc_ai/features/auth/presentation/bloc/auth_state.dart';
-import 'package:corp_doc_ai/features/library/presentation/widgets/neo_container.dart';
+import 'package:corp_doc_ai/features/document/presentation/widgets/neo_container.dart';
 // import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
