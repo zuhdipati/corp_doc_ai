@@ -2,8 +2,9 @@ import 'package:corp_doc_ai/core/themes/app_colors.dart';
 import 'package:corp_doc_ai/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:corp_doc_ai/features/auth/presentation/bloc/auth_event.dart';
 import 'package:corp_doc_ai/features/auth/presentation/bloc/auth_state.dart';
+import 'package:corp_doc_ai/features/document/presentation/bloc/document_bloc.dart';
 import 'package:corp_doc_ai/features/document/presentation/widgets/neo_container.dart';
-// import 'package:file_picker/file_picker.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -17,11 +18,17 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   @override
+  void initState() {
+    super.initState();
+    context.read<DocumentBloc>().add(GetDocumentsEvent());
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthUnauthenticated) {
-          context.pushNamed('login');
+          context.goNamed('login');
         }
       },
       child: Scaffold(
@@ -38,20 +45,22 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     NeoContainer(
                       onTap: () async {
-                        // FilePickerResult? result = await FilePicker.platform
-                        //     .pickFiles(
-                        //       type: FileType.custom,
-                        //       allowedExtensions: ['pdf', 'json', 'txt'],
-                        //     );
-                        // if (result != null) {
-                        //   String fileName = result.files.single.name;
+                        FilePickerResult? result = await FilePicker.platform
+                            .pickFiles(
+                              type: FileType.custom,
+                              allowedExtensions: ['pdf', 'json', 'txt'],
+                            );
+                        if (result != null) {
+                          // String fileName = result.files.single.name;
 
-                        //   if (!context.mounted) return;
-                        context.pushNamed(
-                          'chat',
-                          queryParameters: {'fileName': 'fileName'},
-                        );
-                        // }
+                          if (!context.mounted) return;
+                          context.pushNamed(
+                            'chat',
+                            queryParameters: {
+                              'fileName': result.files.single.name,
+                            },
+                          );
+                        }
                       },
                       width: 200,
                       child: Text("Upload File"),
@@ -79,38 +88,53 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
-        body: SafeArea(
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                Container(
-                  padding: EdgeInsets.all(15),
-                  alignment: Alignment.center,
-                  height: MediaQuery.of(context).size.height / 1.4,
-                  child: Text(
-                    "Selamat Datang di Corp Doc AI, upload file dan AI akan berintegrasi dengan data dan anda bisa mulai berkomunikasi",
-                    style: TextStyle(fontSize: 20),
-                    textAlign: TextAlign.center,
+        body: BlocBuilder<DocumentBloc, DocumentState>(
+          builder: (context, state) {
+            if (state is DocumentLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (state is DocumentError) {
+              return Center(child: Text(state.message));
+            }
+            if (state is ListDocumentLoaded) {
+              return SafeArea(
+                child: Visibility(
+                  visible: state.documents.isNotEmpty,
+                  replacement: Container(
+                    padding: EdgeInsets.all(15),
+                    alignment: Alignment.center,
+                    height: MediaQuery.of(context).size.height / 1.4,
+                    child: Text(
+                      "Selamat Datang di Corp Doc AI, upload file dan AI akan berintegrasi dengan data dan anda bisa mulai berkomunikasi",
+                      style: TextStyle(fontSize: 20),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: List.generate(state.documents.length, (index) {
+                        return Container(
+                          alignment: Alignment.center,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          child: NeoContainer(
+                            onTap: () {},
+                            height: MediaQuery.of(context).size.height / 8,
+                            width: MediaQuery.of(context).size.width / 1.2,
+                            child: Text(state.documents[index].name),
+                          ),
+                        );
+                      }),
+                    ),
                   ),
                 ),
-                // ...List.generate(3, (index) {
-                //   return Container(
-                //     alignment: Alignment.center,
-                //     padding: const EdgeInsets.symmetric(
-                //       horizontal: 12,
-                //       vertical: 8,
-                //     ),
-                //     child: AniContainer(
-                //       onTap: () {},
-                //       height: MediaQuery.of(context).size.height / 8,
-                //       width: MediaQuery.of(context).size.width / 1.2,
-                //       child: Text("halo"),
-                //     ),
-                //   );
-                // }),
-              ],
-            ),
-          ),
+              );
+            } else {
+              return const Center(child: Text("Something went wrong"));
+            }
+          },
         ),
       ),
     );

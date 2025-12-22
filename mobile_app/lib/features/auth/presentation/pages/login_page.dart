@@ -1,5 +1,8 @@
+import 'dart:developer';
+
 import 'package:corp_doc_ai/core/themes/app_colors.dart';
 import 'package:corp_doc_ai/core/utils/toast.dart';
+import 'package:corp_doc_ai/features/auth/data/repositories/auth_repository.dart';
 import 'package:corp_doc_ai/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:corp_doc_ai/features/auth/presentation/bloc/auth_event.dart';
 import 'package:corp_doc_ai/features/auth/presentation/bloc/auth_state.dart';
@@ -14,9 +17,11 @@ class LoginPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       bloc: context.read<AuthBloc>()..add(AuthCheckRequested()),
-      listener: (context, state) {
+      listener: (context, state) async {
         if (state is AuthAuthenticated) {
-          context.pushNamed('home');
+          context.goNamed('home');
+          String idToken = await AuthRepository().getIdToken() ?? '';
+          log(idToken);
         } else if (state is AuthError) {
           ToastUtils.show(state.message, backgroundColor: Colors.red);
         }

@@ -38,6 +38,10 @@ class AuthRepository {
     await Future.wait([_firebaseAuth.signOut(), _googleSignIn.signOut()]);
   }
 
+  Future<String?> getIdToken() async {
+    return await _firebaseAuth.currentUser?.getIdToken();
+  }
+
   User? get currentUser => _firebaseAuth.currentUser;
 
   Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
