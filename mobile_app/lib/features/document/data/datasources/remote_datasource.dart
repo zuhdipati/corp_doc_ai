@@ -58,16 +58,26 @@ class DocumentRemoteDataSourcesImpl implements DocumentRemoteDataSources {
 
   @override
   Future<DocumentModel> uploadDocument(File file) async {
+    final token = await AuthRepository().getIdToken();
+    if (token == null) {
+      throw GeneralException(message: 'Failed to authenticate user');
+    }
+
     try {
       final url = Uri.parse(urlUploadDocuments);
-      final response = await client
-          .post(url, body: file)
-          .timeout(Duration(seconds: 30));
+      final request = http.MultipartRequest('POST', url);
+      request.headers['Authorization'] = 'Bearer $token';
+      request.files.add(await http.MultipartFile.fromPath('file', file.path));
+      final streamedResponse = await request.send().timeout(Duration(seconds: 60));
+
+      final response = await http.Response.fromStream(streamedResponse);
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         return DocumentModel.fromJson(data);
       } else {
-        throw GeneralException(message: 'Failed to load documents');
+        log('Upload failed: ${response.statusCode} - ${response.body}');
+        throw GeneralException(message: 'Failed to upload document');
       }
     } on TimeoutException {
       throw GeneralException(message: "Request timed out. Please try again.");
@@ -83,7 +93,36 @@ class DocumentRemoteDataSourcesImpl implements DocumentRemoteDataSources {
   }
 
   @override
-  Future<DocumentModel> deleteDocument(String documentId) {
-    throw UnimplementedError();
+  Future<DocumentModel> deleteDocument(String documentId) async {
+    final token = await AuthRepository().getIdToken();
+    if (token == null) {
+      throw GeneralException(message: 'Failed to authenticate user');
+    }
+
+    try {
+      final url = Uri.parse(urlDeleteDocument(documentId));
+      final response = await client
+          .delete(
+            url,
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+          )
+          .timeout(Duration(seconds: 30));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return DocumentModel.fromJson(data);
+      } else {
+        log('Delete failed: ${response.statusCode} - ${response.body}');
+        throw GeneralException(message: 'Failed to delete document');
+      }
+    } on TimeoutException {
+      throw GeneralException(message: "Request timed out. Please try again.");
+    } catch (e) {
+      log(e.toString());
+      throw GeneralException(message: "An unexpected error occurred");
+    }
   }
 }

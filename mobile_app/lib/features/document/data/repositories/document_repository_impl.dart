@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:corp_doc_ai/core/error/exception.dart';
 import 'package:corp_doc_ai/core/error/failure.dart';
 import 'package:corp_doc_ai/features/document/data/datasources/remote_datasource.dart';
@@ -37,9 +39,21 @@ class DocumentRepositoryImpl extends DocumentRepository {
   }
 
   @override
-  Future<Either<Failure, DocumentEntity>> deleteDocument(String documentId) {
-    // TODO: implement deleteDocument
-    throw UnimplementedError();
+  Future<Either<Failure, DocumentEntity>> deleteDocument(String documentId) async {
+    bool checkConnection = await InternetConnection().hasInternetAccess;
+
+    try {
+      if (checkConnection) {
+        DocumentModel result = await remoteDataSources.deleteDocument(documentId);
+        return Right(result.toEntity());
+      } else {
+        return Left(Failure('No internet connection'));
+      }
+    } on GeneralException catch (e) {
+      return Left(Failure(e.message));
+    } catch (e) {
+      return Left(Failure('An unexpected error occurred'));
+    }
   }
 
   @override
@@ -50,9 +64,21 @@ class DocumentRepositoryImpl extends DocumentRepository {
 
   @override
   Future<Either<Failure, DocumentEntity>> uploadDocument(
-    DocumentEntity document,
-  ) {
-    // TODO: implement uploadDocument
-    throw UnimplementedError();
+    File document,
+  ) async{
+    bool checkConnection = await InternetConnection().hasInternetAccess;
+
+    try {
+      if (checkConnection) {
+        DocumentModel result = await remoteDataSources.uploadDocument(document);
+        return Right(result.toEntity());
+      } else {
+        return Left(Failure('No internet connection'));
+      }
+    } on GeneralException catch (e) {
+      return Left(Failure(e.message));
+    } catch (e) {
+      return Left(Failure('An unexpected error occurred'));
+    }
   }
 }

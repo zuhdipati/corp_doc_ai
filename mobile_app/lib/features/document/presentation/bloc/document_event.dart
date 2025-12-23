@@ -26,5 +26,5 @@ final class DeleteDocumentEvent extends DocumentEvent {
 final class UploadDocumentEvent extends DocumentEvent {
   const UploadDocumentEvent({required this.document});
 
-  final DocumentEntity document;
+  final File document;
 }

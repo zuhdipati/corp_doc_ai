@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:corp_doc_ai/core/themes/app_colors.dart';
 import 'package:corp_doc_ai/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:corp_doc_ai/features/auth/presentation/bloc/auth_event.dart';
@@ -51,15 +53,14 @@ class _HomePageState extends State<HomePage> {
                               allowedExtensions: ['pdf', 'json', 'txt'],
                             );
                         if (result != null) {
-                          // String fileName = result.files.single.name;
-
                           if (!context.mounted) return;
-                          context.pushNamed(
-                            'chat',
-                            queryParameters: {
-                              'fileName': result.files.single.name,
-                            },
+                          context.read<DocumentBloc>().add(
+                            UploadDocumentEvent(
+                              document: File(result.files.single.path ?? ''),
+                            ),
                           );
+
+                          context.pop();
                         }
                       },
                       width: 200,
@@ -88,12 +89,31 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
-        body: BlocBuilder<DocumentBloc, DocumentState>(
+        body: BlocConsumer<DocumentBloc, DocumentState>(
+          listener: (context, state) {
+            if (state is UploadedDocument) {
+              context
+                  .pushNamed(
+                    'chat',
+                    queryParameters: {'fileName': state.document.name},
+                  )
+                  .then((_) {
+                    if (context.mounted) {
+                      context.read<DocumentBloc>().add(GetDocumentsEvent());
+                    }
+                  });
+            }
+            if (state is UploadedDocumentError) {
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(state.message)));
+            }
+          },
           builder: (context, state) {
             if (state is DocumentLoading) {
               return const Center(child: CircularProgressIndicator());
             }
-            if (state is DocumentError) {
+            if (state is ListDocumentError) {
               return Center(child: Text(state.message));
             }
             if (state is ListDocumentLoaded) {
@@ -119,11 +139,56 @@ class _HomePageState extends State<HomePage> {
                             horizontal: 12,
                             vertical: 8,
                           ),
-                          child: NeoContainer(
-                            onTap: () {},
-                            height: MediaQuery.of(context).size.height / 8,
-                            width: MediaQuery.of(context).size.width / 1.2,
-                            child: Text(state.documents[index].name),
+                          child: Stack(
+                            children: [
+                              NeoContainer(
+                                onTap: () {},
+                                height: MediaQuery.of(context).size.height / 8,
+                                width: MediaQuery.of(context).size.width / 1.2,
+                                child: Text(state.documents[index].name),
+                              ),
+                              Positioned(
+                                right: 0,
+                                top: 0,
+                                child: IconButton(
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (_) => AlertDialog.adaptive(
+                                        title: Text("Are you sure?"),
+                                        content: Text(
+                                          "Are you sure you want to delete ${state.documents[index].name} document?",
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () {
+                                              context.pop();
+                                            },
+                                            child: Text("Cancel"),
+                                          ),
+                                          TextButton(
+                                            onPressed: () {
+                                              context.pop();
+                                              context.read<DocumentBloc>().add(
+                                                DeleteDocumentEvent(
+                                                  documentId:
+                                                      state.documents[index].id,
+                                                ),
+                                              );
+                                            },
+                                            child: Text("Delete"),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                  icon: Icon(
+                                    Icons.delete_sharp,
+                                    color: Colors.red,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         );
                       }),
@@ -132,7 +197,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               );
             } else {
-              return const Center(child: Text("Something went wrong"));
+              return const SizedBox();
             }
           },
         ),

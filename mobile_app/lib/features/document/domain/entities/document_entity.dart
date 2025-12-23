@@ -7,7 +7,7 @@ class DocumentEntity extends Equatable {
   final String fileType;
 
   const DocumentEntity({
-    required this.id,
+    this.id = '',
     required this.name,
     required this.path,
     required this.fileType,

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:bloc/bloc.dart';
 import 'package:corp_doc_ai/features/document/domain/entities/document_entity.dart';
 import 'package:corp_doc_ai/features/document/domain/usecases/delete_document.dart';
@@ -35,7 +36,7 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
     emit(DocumentLoading());
     final result = await getDocuments.call();
     result.fold(
-      (l) => emit(DocumentError(message: l.message)),
+      (l) => emit(ListDocumentError(message: l.message)),
       (r) => emit(ListDocumentLoaded(documents: r)),
     );
   }
@@ -47,7 +48,7 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
     emit(DocumentLoading());
     final result = await getDetailDocument.call(event.documentId);
     result.fold(
-      (l) => emit(DocumentError(message: l.message)),
+      (l) => emit(ListDocumentError(message: l.message)),
       (r) => emit(DocumentLoaded(document: r)),
     );
   }
@@ -56,23 +57,38 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
     DeleteDocumentEvent event,
     Emitter<DocumentState> emit,
   ) async {
+   
     emit(DocumentLoading());
     final result = await deleteDocument.call(event.documentId);
-    result.fold(
-      (l) => emit(DocumentError(message: l.message)),
-      (r) => emit(DocumentLoaded(document: r)),
-    );
+
+    if (result.isLeft()) {
+      emit(
+        DeleteDocumentError(message: result.fold((l) => l.message, (r) => '')),
+      );
+      return;
+    }
+
+    final listResult = await getDocuments.call();
+    if (listResult.isLeft()) {
+      emit(
+        ListDocumentError(
+          message: listResult.fold((l) => l.message, (r) => ''),
+        ),
+      );
+    } else {
+      emit(ListDocumentLoaded(documents: listResult.fold((l) => [], (r) => r)));
+    }
   }
 
   FutureOr<void> _onUploadDocument(
     UploadDocumentEvent event,
     Emitter<DocumentState> emit,
   ) async {
-    emit(DocumentLoading());
+    emit(UploadDocumentLoading());
     final result = await uploadDocument.call(event.document);
     result.fold(
-      (l) => emit(DocumentError(message: l.message)),
-      (r) => emit(DocumentLoaded(document: r)),
+      (l) => emit(UploadedDocumentError(message: l.message)),
+      (r) => emit(UploadedDocument(document: r)),
     );
   }
 }
