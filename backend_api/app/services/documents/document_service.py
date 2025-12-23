@@ -1,46 +1,20 @@
-import os
 import uuid
-import json
 import aiofiles
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
 from fastapi import UploadFile, HTTPException
 
-from app.core.config import settings
+from .base import DocumentBaseService
 from app.models.document import DocumentMetadata
 
 
-class DocumentService:
+class DocumentService(DocumentBaseService):
     ALLOWED_EXTENSIONS = {'.pdf', '.json', '.txt'}
     MAX_FILE_SIZE = 10 * 1024 * 1024
-    
+
     def __init__(self):
-        self.upload_dir = Path(settings.UPLOAD_DIR)
-        self._ensure_upload_dir()
-    
-    def _ensure_upload_dir(self):
-        self.upload_dir.mkdir(parents=True, exist_ok=True)
-    
-    def _get_user_dir(self, user_id: str) -> Path:
-        user_dir = self.upload_dir / user_id
-        user_dir.mkdir(parents=True, exist_ok=True)
-        return user_dir
-    
-    def _get_metadata_file(self, user_id: str) -> Path:
-        return self._get_user_dir(user_id) / "metadata.json"
-    
-    def _load_metadata(self, user_id: str) -> dict:
-        metadata_file = self._get_metadata_file(user_id)
-        if metadata_file.exists():
-            with open(metadata_file, 'r') as f:
-                return json.load(f)
-        return {}
-    
-    def _save_metadata(self, user_id: str, metadata: dict):
-        metadata_file = self._get_metadata_file(user_id)
-        with open(metadata_file, 'w') as f:
-            json.dump(metadata, f, indent=2, default=str)
+        super().__init__()
     
     def _validate_file(self, file: UploadFile) -> str:
         if not file.filename:
@@ -85,8 +59,8 @@ class DocumentService:
             uploaded_at=now
         )
         
-        # update metadata storage
-        all_metadata = self._load_metadata(user_id)
+        # update metadata
+        all_metadata = await self._load_metadata(user_id)
         all_metadata[document_id] = {
             "document_id": document_id,
             "user_id": user_id,
@@ -96,12 +70,12 @@ class DocumentService:
             "uploaded_at": now.isoformat(),
             "stored_filename": safe_filename
         }
-        self._save_metadata(user_id, all_metadata)
+        await self._save_metadata(user_id, all_metadata)
         
         return metadata
     
-    def get_document_metadata(self, document_id: str, user_id: str) -> Optional[DocumentMetadata]:
-        all_metadata = self._load_metadata(user_id)
+    async def get_document_metadata(self, document_id: str, user_id: str) -> Optional[DocumentMetadata]:
+        all_metadata = await self._load_metadata(user_id)
         if document_id not in all_metadata:
             return None
         
@@ -115,8 +89,8 @@ class DocumentService:
             uploaded_at=datetime.fromisoformat(doc_data["uploaded_at"])
         )
     
-    def list_documents(self, user_id: str) -> list[DocumentMetadata]:
-        all_metadata = self._load_metadata(user_id)
+    async def list_documents(self, user_id: str) -> list[DocumentMetadata]:
+        all_metadata = await self._load_metadata(user_id)
         documents = []
         
         for doc_data in all_metadata.values():
@@ -131,8 +105,8 @@ class DocumentService:
         
         return documents
     
-    def delete_document(self, document_id: str, user_id: str) -> bool:
-        all_metadata = self._load_metadata(user_id)
+    async def delete_document(self, document_id: str, user_id: str) -> bool:
+        all_metadata = await self._load_metadata(user_id)
         
         if document_id not in all_metadata:
             return False
@@ -145,7 +119,7 @@ class DocumentService:
             file_path.unlink()
         
         del all_metadata[document_id]
-        self._save_metadata(user_id, all_metadata)
+        await self._save_metadata(user_id, all_metadata)
         
         return True
 

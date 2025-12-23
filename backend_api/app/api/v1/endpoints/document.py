@@ -5,7 +5,7 @@ from app.models.document import (
     DocumentMetadata,
     DocumentListResponse
 )
-from app.services.document_service import document_service
+from app.services.documents.document_service import document_service
 from app.core.firebase_auth import FirebaseUser, get_current_user
 
 router = APIRouter()
@@ -33,7 +33,7 @@ async def upload_document(
 
 @router.get("", response_model=DocumentListResponse)
 async def list_documents(current_user: FirebaseUser = Depends(get_current_user)):
-    documents = document_service.list_documents(current_user.uid)
+    documents = await document_service.list_documents(current_user.uid)
     return DocumentListResponse(
         documents=documents,
         total_count=len(documents)
@@ -45,7 +45,7 @@ async def get_document(
     document_id: str,
     current_user: FirebaseUser = Depends(get_current_user)
 ):
-    metadata = document_service.get_document_metadata(document_id, current_user.uid)
+    metadata = await document_service.get_document_metadata(document_id, current_user.uid)
     if not metadata:
         raise HTTPException(status_code=404, detail="Document not found")
     return metadata
@@ -56,7 +56,7 @@ async def delete_document(
     document_id: str,
     current_user: FirebaseUser = Depends(get_current_user)
 ):
-    success = document_service.delete_document(document_id, current_user.uid)
+    success = await document_service.delete_document(document_id, current_user.uid)
     if not success:
         raise HTTPException(status_code=404, detail="Document not found")
     return {"message": "Document deleted successfully", "document_id": document_id}
