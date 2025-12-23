@@ -1,27 +1,26 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 
 from app.models.document import (
-    DocumentUploadResponse,
+    DocumentResponse,
     DocumentMetadata,
     DocumentListResponse
 )
 from app.services.document_service import document_service
 from app.core.firebase_auth import FirebaseUser, get_current_user
 
-
 router = APIRouter()
 
 
-@router.post("/upload", response_model=DocumentUploadResponse)
+@router.post("/upload", response_model=DocumentResponse)
 async def upload_document(
     file: UploadFile = File(...),
     current_user: FirebaseUser = Depends(get_current_user)
 ):
     try:
         metadata = await document_service.save_document(file, current_user.uid)
-        return DocumentUploadResponse(
+        return DocumentResponse(
             document_id=metadata.document_id,
-            filename=metadata.filename,
+            file_name=metadata.file_name,
             file_type=metadata.file_type,
             size_bytes=metadata.size_bytes,
             uploaded_at=metadata.uploaded_at

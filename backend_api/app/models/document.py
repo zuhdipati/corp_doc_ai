@@ -3,9 +3,9 @@ from typing import Optional
 from datetime import datetime
 
 
-class DocumentUploadResponse(BaseModel):
+class DocumentResponse(BaseModel):
     document_id: str
-    filename: str
+    file_name: str
     file_type: str
     size_bytes: int
     uploaded_at: datetime
@@ -15,7 +15,7 @@ class DocumentUploadResponse(BaseModel):
 class DocumentMetadata(BaseModel):
     document_id: str
     user_id: str
-    filename: str
+    file_name: str
     file_type: str
     size_bytes: int
     uploaded_at: datetime

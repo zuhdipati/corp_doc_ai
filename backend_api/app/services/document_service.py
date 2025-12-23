@@ -79,7 +79,7 @@ class DocumentService:
         metadata = DocumentMetadata(
             document_id=document_id,
             user_id=user_id,
-            filename=file.filename,
+            file_name=file.filename,
             file_type=ext.lstrip('.'),
             size_bytes=len(content),
             uploaded_at=now
@@ -90,7 +90,7 @@ class DocumentService:
         all_metadata[document_id] = {
             "document_id": document_id,
             "user_id": user_id,
-            "filename": file.filename,
+            "file_name": file.filename,
             "file_type": ext.lstrip('.'),
             "size_bytes": len(content),
             "uploaded_at": now.isoformat(),
@@ -109,7 +109,7 @@ class DocumentService:
         return DocumentMetadata(
             document_id=doc_data["document_id"],
             user_id=doc_data["user_id"],
-            filename=doc_data["filename"],
+            file_name=doc_data["file_name"],
             file_type=doc_data["file_type"],
             size_bytes=doc_data["size_bytes"],
             uploaded_at=datetime.fromisoformat(doc_data["uploaded_at"])
@@ -123,7 +123,7 @@ class DocumentService:
             documents.append(DocumentMetadata(
                 document_id=doc_data["document_id"],
                 user_id=doc_data["user_id"],
-                filename=doc_data["filename"],
+                file_name=doc_data["file_name"],
                 file_type=doc_data["file_type"],
                 size_bytes=doc_data["size_bytes"],
                 uploaded_at=datetime.fromisoformat(doc_data["uploaded_at"])
