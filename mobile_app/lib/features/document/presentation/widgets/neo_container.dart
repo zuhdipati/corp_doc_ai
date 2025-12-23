@@ -27,6 +27,21 @@ class NeoContainer extends StatefulWidget {
 
 class _NeoContainerState extends State<NeoContainer> {
   bool _isPressed = false;
+  final GlobalKey _key = GlobalKey();
+
+  bool _isPointerInsideBounds(Offset globalPosition) {
+    final RenderBox? box =
+        _key.currentContext?.findRenderObject() as RenderBox?;
+    if (box == null) return false;
+
+    final Offset localPosition = box.globalToLocal(globalPosition);
+    final Size size = box.size;
+
+    return localPosition.dx >= 0 &&
+        localPosition.dx <= size.width &&
+        localPosition.dy >= 0 &&
+        localPosition.dy <= size.height;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,13 +55,17 @@ class _NeoContainerState extends State<NeoContainer> {
           _isPressed = true;
         });
       },
-      onPointerUp: (_) {
+      onPointerUp: (event) {
+        final wasPressed = _isPressed;
         setState(() {
           _isPressed = false;
         });
-        widget.onTap();
+        if (wasPressed && _isPointerInsideBounds(event.position)) {
+          widget.onTap();
+        }
       },
       child: AnimatedContainer(
+        key: _key,
         duration: const Duration(milliseconds: 100),
         height: widget.height,
         width: widget.width,
