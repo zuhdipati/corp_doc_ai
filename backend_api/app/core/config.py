@@ -5,15 +5,25 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "CorpDocAI"
     API_V1_STR: str = "/api/v1"
 
-    MODEL_API_KEY: str 
-    MODEL_BASE_URL: str 
-    VECTOR_DB_EMBEDDING_MODEL: str = "BAAI/bge-m3"
-    VECTOR_DB_PATH: str = "./vector_db"
+    # file storage
     UPLOAD_DIR: str = "./uploads"
+    VECTORSTORE_DIR: str = "./vectorstores"
+    
+    # firebase
     FIREBASE_CREDENTIALS_PATH: str = "./service_account.json"
-    MODEL_NAME: str = "openai/gpt-oss-20b"
+    
+    # document processing
     CHUNK_SIZE: int = 3000
     CHUNK_OVERLAP: int = 200
+    
+    # embedding model
+    EMBEDDING_MODEL: str = "BAAI/bge-m3"
+    
+    # llm settings
+    LLM_MODEL: str = "openai/gpt-oss-20b"
+    MODEL_API_KEY: str
+    MODEL_BASE_URL: str
+    RETRIEVER_K: int = 8         
 
     class Config:
         env_file = ".env"

@@ -1,10 +1,12 @@
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel
-from typing import List, Optional
+
 
 class ChatRequest(BaseModel):
     question: str
-    chat_history: Optional[List[str]] = []
+    chat_history: Optional[List[dict]] = None
+
 
 class ChatResponse(BaseModel):
     answer: str
+    sources: Optional[List[str]] = None

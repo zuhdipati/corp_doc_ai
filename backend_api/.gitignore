@@ -208,5 +208,6 @@ marimo/_lsp/
 __marimo__/
 
 chroma_bge/
-
+uploads/
 service_account.json
+vectorstores/
