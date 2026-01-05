@@ -21,6 +21,7 @@ Riwayat percakapan:
 
 Pertanyaan: {input}
 
+Jangan jawab dengan bentuk tabel
 Berikan jawaban yang informatif dan akurat berdasarkan konteks di atas dengan friendly. 
 Jika informasi tidak tersedia dalam dokumen, katakan bahwa Anda tidak menemukan informasi tersebut.
 """

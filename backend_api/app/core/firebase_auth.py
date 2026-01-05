@@ -1,3 +1,4 @@
+import logging
 import firebase_admin
 from firebase_admin import credentials, auth
 from fastapi import Depends, HTTPException, status
@@ -6,6 +7,8 @@ from typing import Optional
 from pydantic import BaseModel
 
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 
 _firebase_app: Optional[firebase_admin.App] = None
@@ -30,11 +33,11 @@ async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ) -> FirebaseUser:
     token = credentials.credentials
-    print(f"[DEBUG] Received token (first 50 chars): {token[:50]}...")
+    logger.debug(f"Received token (first 50 chars): {token[:50]}...")
     
     try:
         get_firebase_app()
-        print("[DEBUG] Firebase app initialized successfully")
+        logger.debug("Firebase app initialized successfully")
         
         decoded_token = auth.verify_id_token(token)
         

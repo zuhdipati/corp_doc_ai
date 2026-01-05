@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, BackgroundTasks
+from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 import asyncio
 import logging
 
@@ -71,7 +71,6 @@ async def get_document(
 
 @router.delete("/{document_id}")
 async def delete_document(
-    background_tasks: BackgroundTasks,
     document_id: str,
     current_user: FirebaseUser = Depends(get_current_user)
 ):

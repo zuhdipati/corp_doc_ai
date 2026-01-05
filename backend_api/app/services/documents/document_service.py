@@ -1,6 +1,6 @@
 import uuid
 import aiofiles
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 from fastapi import UploadFile, HTTPException
@@ -49,7 +49,7 @@ class DocumentService(DocumentBaseService):
             await f.write(content)
         
         # create metadata
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         metadata = DocumentMetadata(
             document_id=document_id,
             user_id=user_id,
