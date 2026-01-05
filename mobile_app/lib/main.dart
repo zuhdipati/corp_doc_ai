@@ -2,6 +2,7 @@ import 'package:corp_doc_ai/configs/injector/injector_conf.dart';
 import 'package:corp_doc_ai/core/routes/app_routes.dart';
 import 'package:corp_doc_ai/core/themes/app_theme.dart';
 import 'package:corp_doc_ai/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:corp_doc_ai/features/chat/presentation/bloc/chat_bloc.dart';
 import 'package:corp_doc_ai/features/document/presentation/bloc/document_bloc.dart';
 import 'package:corp_doc_ai/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -24,6 +25,7 @@ class CorpDocApp extends StatelessWidget {
       providers: [
         BlocProvider(create: (context) => sl<AuthBloc>()),
         BlocProvider(create: (context) => sl<DocumentBloc>()),
+        BlocProvider(create: (context) => sl<ChatBloc>()),
       ],
       child: MaterialApp.router(
         routerConfig: AppRoutes().router,

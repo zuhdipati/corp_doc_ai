@@ -36,9 +36,12 @@ class AppRoutes {
         pageBuilder: (context, state) => CupertinoPage(child: const HomePage()),
       ),
       GoRoute(
-        path: '/chat',
+        path: '/chat/:documentId',
         name: 'chat',
-        pageBuilder: (context, state) => CupertinoPage(child: ChatPage()),
+        pageBuilder: (context, state) {
+          final documentId = state.pathParameters['documentId']!;
+          return CupertinoPage(child: ChatPage(documentId: documentId));
+        },
       ),
     ],
   );

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:corp_doc_ai/core/themes/app_colors.dart';
+import 'package:corp_doc_ai/core/utils/toast.dart';
 import 'package:corp_doc_ai/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:corp_doc_ai/features/auth/presentation/bloc/auth_event.dart';
 import 'package:corp_doc_ai/features/auth/presentation/bloc/auth_state.dart';
@@ -92,10 +93,11 @@ class _HomePageState extends State<HomePage> {
         body: BlocConsumer<DocumentBloc, DocumentState>(
           listener: (context, state) {
             if (state is UploadedDocument) {
+              context.pop();
               context
                   .pushNamed(
                     'chat',
-                    queryParameters: {'fileName': state.document.name},
+                    pathParameters: {'documentId': state.document.id},
                   )
                   .then((_) {
                     if (context.mounted) {
@@ -103,15 +105,35 @@ class _HomePageState extends State<HomePage> {
                     }
                   });
             }
+            if (state is UploadDocumentLoading) {
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => AlertDialog(
+                  backgroundColor: AppColors.secondary,
+                  title: Text("Upload File"),
+                  content: Text("File sedang diupload dan diproses"),
+                  actions: [
+                    CircularProgressIndicator.adaptive(
+                      backgroundColor: AppColors.black,
+                    ),
+                  ],
+                ),
+              );
+            }
             if (state is UploadedDocumentError) {
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text(state.message)));
+              ToastUtils.show(state.message);
+              context.pop();
             }
           },
           builder: (context, state) {
             if (state is DocumentLoading) {
-              return const Center(child: CircularProgressIndicator());
+              return Center(
+                child: CircularProgressIndicator.adaptive(
+                  strokeWidth: 2,
+                  backgroundColor: AppColors.black,
+                ),
+              );
             }
             if (state is ListDocumentError) {
               return Center(child: Text(state.message));
@@ -142,7 +164,14 @@ class _HomePageState extends State<HomePage> {
                           child: Stack(
                             children: [
                               NeoContainer(
-                                onTap: () {},
+                                onTap: () {
+                                  context.pushNamed(
+                                    'chat',
+                                    pathParameters: {
+                                      'documentId': state.documents[index].id,
+                                    },
+                                  );
+                                },
                                 height: MediaQuery.of(context).size.height / 8,
                                 width: MediaQuery.of(context).size.width / 1.2,
                                 child: Text(state.documents[index].name),
@@ -197,7 +226,12 @@ class _HomePageState extends State<HomePage> {
                 ),
               );
             } else {
-              return const SizedBox();
+              return GestureDetector(
+                onTap: () {
+                  context.read<DocumentBloc>().add(GetDocumentsEvent());
+                },
+                child: Center(child: Text("Error, tap to refresh")),
+              );
             }
           },
         ),

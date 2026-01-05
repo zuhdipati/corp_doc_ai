@@ -68,7 +68,7 @@ class DocumentRemoteDataSourcesImpl implements DocumentRemoteDataSources {
       final request = http.MultipartRequest('POST', url);
       request.headers['Authorization'] = 'Bearer $token';
       request.files.add(await http.MultipartFile.fromPath('file', file.path));
-      final streamedResponse = await request.send().timeout(Duration(seconds: 60));
+      final streamedResponse = await request.send();
 
       final response = await http.Response.fromStream(streamedResponse);
 
@@ -79,8 +79,6 @@ class DocumentRemoteDataSourcesImpl implements DocumentRemoteDataSources {
         log('Upload failed: ${response.statusCode} - ${response.body}');
         throw GeneralException(message: 'Failed to upload document');
       }
-    } on TimeoutException {
-      throw GeneralException(message: "Request timed out. Please try again.");
     } catch (e) {
       log(e.toString());
       throw GeneralException(message: "An unexpected error occurred");

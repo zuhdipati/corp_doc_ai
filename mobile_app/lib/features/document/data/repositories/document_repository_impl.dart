@@ -39,12 +39,16 @@ class DocumentRepositoryImpl extends DocumentRepository {
   }
 
   @override
-  Future<Either<Failure, DocumentEntity>> deleteDocument(String documentId) async {
+  Future<Either<Failure, DocumentEntity>> deleteDocument(
+    String documentId,
+  ) async {
     bool checkConnection = await InternetConnection().hasInternetAccess;
 
     try {
       if (checkConnection) {
-        DocumentModel result = await remoteDataSources.deleteDocument(documentId);
+        DocumentModel result = await remoteDataSources.deleteDocument(
+          documentId,
+        );
         return Right(result.toEntity());
       } else {
         return Left(Failure('No internet connection'));
@@ -58,14 +62,11 @@ class DocumentRepositoryImpl extends DocumentRepository {
 
   @override
   Future<Either<Failure, DocumentEntity>> getDetailDocument(String documentId) {
-    // TODO: implement getDetailDocument
     throw UnimplementedError();
   }
 
   @override
-  Future<Either<Failure, DocumentEntity>> uploadDocument(
-    File document,
-  ) async{
+  Future<Either<Failure, DocumentEntity>> uploadDocument(File document) async {
     bool checkConnection = await InternetConnection().hasInternetAccess;
 
     try {

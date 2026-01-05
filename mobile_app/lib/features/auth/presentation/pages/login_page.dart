@@ -140,9 +140,9 @@ class _GoogleSignInButtonState extends State<_GoogleSignInButton> {
             ? const SizedBox(
                 width: 24,
                 height: 24,
-                child: CircularProgressIndicator(
+                child: CircularProgressIndicator.adaptive(
                   strokeWidth: 2,
-                  color: AppColors.black,
+                  backgroundColor: AppColors.black,
                 ),
               )
             : Row(

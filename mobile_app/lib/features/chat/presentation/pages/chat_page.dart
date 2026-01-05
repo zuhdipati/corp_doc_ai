@@ -1,6 +1,10 @@
 import 'package:corp_doc_ai/core/themes/app_colors.dart';
+import 'package:corp_doc_ai/features/chat/domain/entities/chat_entity.dart';
+import 'package:corp_doc_ai/features/chat/presentation/bloc/chat_bloc.dart';
 import 'package:corp_doc_ai/features/document/presentation/widgets/neo_container.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:go_router/go_router.dart';
 
 class ChatMessage {
@@ -13,7 +17,9 @@ class ChatMessage {
 }
 
 class ChatPage extends StatefulWidget {
-  const ChatPage({super.key});
+  final String documentId;
+
+  const ChatPage({super.key, required this.documentId});
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -22,19 +28,16 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final List<ChatMessage> _messages = [];
-  bool _isLoading = false;
 
   @override
   void initState() {
-    _messages.add(
-      ChatMessage(
-        text:
-            "Selamat Datang di Corp Doc AI, tanyakan apa saja tentang dokumen Anda. AI akan membantu menganalisis dan memberikan jawaban.",
-        isUser: false,
-      ),
-    );
     super.initState();
+
+    context.read<ChatBloc>().add(ClearChatEvent());
+    context.read<ChatBloc>().add(
+      GetHistoryEvent(documentId: widget.documentId),
+    );
+    _scrollToBottom();
   }
 
   @override
@@ -56,88 +59,100 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
-  Future<void> _sendMessage() async {
+  void _sendMessage() {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
 
-    setState(() {
-      _messages.add(ChatMessage(text: text, isUser: true));
-      _messageController.clear();
-      _isLoading = true;
-    });
-
-    _scrollToBottom();
-
-    // await api call
-    await Future.delayed(Duration(seconds: 1));
-
-    setState(() {
-      _messages.add(
-        ChatMessage(
-          text:
-              "Terima kasih atas pertanyaan Anda. Saya sedang menganalisis dokumen untuk memberikan jawaban yang relevan.",
-          isUser: false,
-        ),
-      );
-      _isLoading = false;
-    });
-
+    context.read<ChatBloc>().add(
+      SendMessageEvent(documentId: widget.documentId, message: text),
+    );
+    _messageController.clear();
     _scrollToBottom();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.primary,
-      appBar: AppBar(
-        backgroundColor: AppColors.secondary,
-        elevation: 0,
-        leading: Padding(
-          padding: const EdgeInsets.all(8),
-          child: NeoContainer(
-            onTap: () => context.pop(),
-            child: Icon(Icons.arrow_back_ios_new, size: 20),
-          ),
-        ),
-        centerTitle: true,
-        title: Column(
-          children: [
-            Text(
-              "Corp Doc AI",
-              style: TextStyle(
-                color: AppColors.black,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+    return BlocConsumer<ChatBloc, ChatState>(
+      listener: (context, state) {
+        if (state.isSending || state.messages.isNotEmpty) {
+          _scrollToBottom();
+        }
+        if (state.errorMessage != null) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(state.errorMessage!)));
+        }
+      },
+      builder: (context, state) {
+        if (state.isLoadingHistory && state.messages.isEmpty) {
+          return Scaffold(
+            backgroundColor: AppColors.primary,
+            body: const Center(
+              child: CircularProgressIndicator.adaptive(
+                backgroundColor: AppColors.black,
               ),
             ),
-            Text(
-              "Document Assistant",
-              style: TextStyle(color: AppColors.grey, fontSize: 12),
+          );
+        }
+
+        return Scaffold(
+          backgroundColor: AppColors.primary,
+          appBar: AppBar(
+            backgroundColor: AppColors.secondary,
+            elevation: 0,
+            leading: Padding(
+              padding: const EdgeInsets.all(8),
+              child: NeoContainer(
+                onTap: () => context.pop(),
+                child: Icon(Icons.arrow_back_ios_new, size: 20),
+              ),
             ),
-          ],
-        ),
-      ),
-      body: Column(
-        children: [
-          // chat messages
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-              itemCount: _messages.length + (_isLoading ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (index == _messages.length && _isLoading) {
-                  return _buildTypingIndicator();
-                }
-                return _buildMessageBubble(_messages[index]);
-              },
+            centerTitle: true,
+            title: Column(
+              children: [
+                Text(
+                  "Corp Doc AI",
+                  style: TextStyle(
+                    color: AppColors.black,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  "Document Assistant",
+                  style: TextStyle(color: AppColors.grey, fontSize: 12),
+                ),
+              ],
             ),
           ),
+          body: Column(
+            children: [
+              Expanded(
+                child: ListView.builder(
+                  controller: _scrollController,
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                  itemCount: state.messages.length + (state.isSending ? 1 : 0),
+                  itemBuilder: (context, index) {
+                    if (index == state.messages.length && state.isSending) {
+                      return _buildTypingIndicator();
+                    }
+                    final message = state.messages[index];
+                    return _buildMessageBubble(
+                      ChatMessage(
+                        text: message.message,
+                        isUser: message.role == ChatRole.user,
+                        timestamp: message.timestamp,
+                      ),
+                    );
+                  },
+                ),
+              ),
 
-          // input Area
-          _buildInputArea(),
-        ],
-      ),
+              _buildInputArea(),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -191,12 +206,24 @@ class _ChatPageState extends State<ChatPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    message.text,
-                    style: TextStyle(
-                      color: message.isUser ? Colors.white : AppColors.black,
-                      fontSize: 15,
-                      height: 1.4,
+                  MarkdownBody(
+                    data: message.text,
+                    selectable: true,
+                    styleSheet: MarkdownStyleSheet(
+                      p: TextStyle(
+                        color: message.isUser ? Colors.white : Colors.black,
+                        fontSize: 16,
+                      ),
+                      strong: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: message.isUser ? Colors.white : Colors.black,
+                      ),
+                      code: TextStyle(
+                        backgroundColor: message.isUser
+                            ? Colors.blue[800]
+                            : Colors.grey[300],
+                        fontFamily: 'monospace',
+                      ),
                     ),
                   ),
                   SizedBox(height: 4),

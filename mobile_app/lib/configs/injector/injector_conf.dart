@@ -1,6 +1,12 @@
 import 'package:corp_doc_ai/core/services/connectivity_service.dart';
 import 'package:corp_doc_ai/features/auth/data/repositories/auth_repository.dart';
 import 'package:corp_doc_ai/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:corp_doc_ai/features/chat/data/datasources/remote_datasource.dart';
+import 'package:corp_doc_ai/features/chat/data/repositories/chat_repository.dart';
+import 'package:corp_doc_ai/features/chat/domain/repositories/chat_repository.dart';
+import 'package:corp_doc_ai/features/chat/domain/usecases/chat_history.dart';
+import 'package:corp_doc_ai/features/chat/domain/usecases/send_message.dart';
+import 'package:corp_doc_ai/features/chat/presentation/bloc/chat_bloc.dart';
 // import 'package:corp_doc_ai/features/document/data/datasources/local_datasource.dart';
 import 'package:corp_doc_ai/features/document/data/datasources/remote_datasource.dart';
 import 'package:corp_doc_ai/features/document/data/repositories/document_repository_impl.dart';
@@ -17,7 +23,7 @@ import 'package:http/http.dart' as http;
 final sl = GetIt.instance;
 
 Future<void> initInjector() async {
-   // Hive
+  // Hive
   // var box = await Hive.openBox('documents_box');
   // sl.registerLazySingleton(
   //   () => box,
@@ -28,17 +34,16 @@ Future<void> initInjector() async {
   sl<ConnectivityService>().initialize();
 
   // HTTP
-  sl.registerLazySingleton(
-    () => http.Client(),
-  );
+  sl.registerLazySingleton(() => http.Client());
 
   // Repositories
   sl.registerLazySingleton<AuthRepository>(() => AuthRepository());
 
   // BLoCs
   sl.registerFactory<AuthBloc>(() => AuthBloc(authRepository: sl()));
-
-  // Document
+  sl.registerFactory<ChatBloc>(
+    () => ChatBloc(sendMessage: sl(), chatHistory: sl()),
+  );
   sl.registerFactory<DocumentBloc>(
     () => DocumentBloc(
       getDocuments: sl(),
@@ -48,7 +53,7 @@ Future<void> initInjector() async {
     ),
   );
 
-  // Document UseCases
+  // UseCases
   sl.registerLazySingleton<GetDocuments>(
     () => GetDocuments(documentRepository: sl())
   );
@@ -62,12 +67,25 @@ Future<void> initInjector() async {
     () => UploadDocument(documentRepository: sl())
   );
 
-  // Document Repository
+  sl.registerLazySingleton<SendMessage>(
+    () => SendMessage(chatRepository: sl())
+  );
+  sl.registerLazySingleton<ChatHistory>(
+    () => ChatHistory(chatRepository: sl())
+  );
+
+  // Repository
   sl.registerLazySingleton<DocumentRepository>(
     () => DocumentRepositoryImpl(
       // localDataSources: sl(),
       remoteDataSources: sl(),
       // box: sl(),
+    ),
+  );
+
+  sl.registerLazySingleton<ChatRepository>(
+    () => ChatRepositoryImpl(
+      remoteDataSources: sl(),
     ),
   );
 
@@ -77,5 +95,9 @@ Future<void> initInjector() async {
   );
   // sl.registerLazySingleton<DocumentLocalDataSources>(
   //   () => DocumentLocalDataSourcesImpl(box: sl()),
-  // );  
+  // );
+
+  sl.registerLazySingleton<ChatRemoteDataSources>(
+    () => ChatRemoteDataSourcesImpl(client: sl()),
+  );
 }
