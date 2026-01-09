@@ -5,14 +5,18 @@ import 'package:corp_doc_ai/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:corp_doc_ai/features/chat/presentation/bloc/chat_bloc.dart';
 import 'package:corp_doc_ai/features/document/presentation/bloc/document_bloc.dart';
 import 'package:corp_doc_ai/firebase_options.dart';
+import 'package:corp_doc_ai/configs/adapter/adapter_conf.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await Hive.initFlutter();
+  configureAdapter();
   await initInjector();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const CorpDocApp());
 }
 

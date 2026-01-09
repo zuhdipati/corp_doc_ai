@@ -2,21 +2,21 @@ import 'dart:io';
 
 import 'package:corp_doc_ai/core/error/exception.dart';
 import 'package:corp_doc_ai/core/error/failure.dart';
+import 'package:corp_doc_ai/features/document/data/datasources/local_datasource.dart';
 import 'package:corp_doc_ai/features/document/data/datasources/remote_datasource.dart';
 import 'package:corp_doc_ai/features/document/data/models/document_model.dart';
 import 'package:corp_doc_ai/features/document/domain/entities/document_entity.dart';
-// import 'package:corp_doc_ai/features/document/data/datasources/local_datasource.dart';
 import 'package:corp_doc_ai/features/document/domain/repositories/document_repository.dart';
 import 'package:dartz/dartz.dart';
-// import 'package:hive/hive.dart';
+import 'package:hive/hive.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 
 class DocumentRepositoryImpl extends DocumentRepository {
   final DocumentRemoteDataSources remoteDataSources;
-  // final DocumentLocalDataSources localDataSources;
-  // final Box box;
+  final DocumentLocalDataSources localDataSources;
+  final Box box;
 
-  DocumentRepositoryImpl({required this.remoteDataSources});
+  DocumentRepositoryImpl({required this.remoteDataSources, required this.localDataSources, required this.box});
 
   @override
   Future<Either<Failure, List<DocumentEntity>>> getDocuments() async {
@@ -25,11 +25,11 @@ class DocumentRepositoryImpl extends DocumentRepository {
     try {
       if (checkConnection) {
         List<DocumentModel> result = await remoteDataSources.getDocuments();
-        // box.put('getDocuments', result);
+        box.put('documents_box', result);
         return Right(result.map((doc) => doc.toEntity()).toList());
       } else {
-        // List<DocumentModel> documents = box.get('getDocuments') ?? [];
-        return Right([]);
+        List<DocumentModel> documents = await localDataSources.getDocuments();
+        return Right(documents.map((doc) => doc.toEntity()).toList());
       }
     } on GeneralException catch (e) {
       return Left(Failure(e.message));

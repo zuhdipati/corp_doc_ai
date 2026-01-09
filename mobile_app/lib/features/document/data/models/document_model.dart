@@ -1,11 +1,26 @@
 import 'package:corp_doc_ai/features/document/domain/entities/document_entity.dart';
+import 'package:hive/hive.dart';
 
+part 'document_model.g.dart';
+
+@HiveType(typeId: 0)
 class DocumentModel {
+  @HiveField(0)
   final String id;
+
+  @HiveField(1)
   final String fileName;
+
+  @HiveField(2)
   final String fileType;
+
+  @HiveField(3)
   final int sizeBytes;
+
+  @HiveField(4)
   final DateTime uploadedAt;
+
+  @HiveField(5)
   final String message;
 
   DocumentModel({

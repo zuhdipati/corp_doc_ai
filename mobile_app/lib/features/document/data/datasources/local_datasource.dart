@@ -6,15 +6,14 @@ abstract class DocumentLocalDataSources {
 }
 
 class DocumentLocalDataSourcesImpl implements DocumentLocalDataSources {
- final Box box;
+  final Box box;
 
   DocumentLocalDataSourcesImpl({required this.box});
 
   @override
   Future<List<DocumentModel>> getDocuments() async {
-    List<dynamic> documents = box.get('getDocuments') ?? [];
+    List<dynamic> documents = box.get('documents_box') ?? [];
     if (documents.isEmpty) return [];
-    
-    return documents.map((doc) => DocumentModel.fromJson(doc)).toList();
+    return documents.cast<DocumentModel>();
   }
 }
